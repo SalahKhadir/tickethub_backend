@@ -3,6 +3,7 @@ package com.tickethub.controller;
 import com.tickethub.dto.request.LoginRequest;
 import com.tickethub.dto.request.RegisterRequest;
 import com.tickethub.dto.response.JwtResponse;
+import com.tickethub.dto.response.RegistrationResponse;
 import com.tickethub.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         authService.registerClient(registerRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        RegistrationResponse response = new RegistrationResponse(
+                "Registration successful. Your account is pending admin approval.",
+                true);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
