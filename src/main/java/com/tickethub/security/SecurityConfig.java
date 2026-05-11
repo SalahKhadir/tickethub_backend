@@ -34,8 +34,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tickets").hasAnyRole("CLIENT", "TECH", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tickets").hasAnyRole("CLIENT", "TECH", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/tickets/*/status").hasAnyRole("TECH", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/tickets/*/assign").hasAnyRole("TECH", "ADMIN")
+                        .requestMatchers("/api/tickets/**").hasAnyRole("CLIENT", "TECH", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -66,4 +71,3 @@ public class SecurityConfig {
         return source;
     }
 }
-
