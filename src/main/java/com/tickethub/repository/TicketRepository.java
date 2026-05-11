@@ -38,5 +38,19 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             @Param("priority") Priority priority,
             @Param("category") TicketCategory category,
             Pageable pageable);
-}
 
+    @Query("""
+            SELECT t
+            FROM Ticket t
+            WHERE t.assignedTechnician.id = :techId
+              AND (:status IS NULL OR t.status = :status)
+              AND (:priority IS NULL OR t.priority = :priority)
+              AND (:category IS NULL OR t.category = :category)
+            """)
+    Page<Ticket> findByAssignedTechnicianIdWithFilters(
+            @Param("techId") Long techId,
+            @Param("status") TicketStatus status,
+            @Param("priority") Priority priority,
+            @Param("category") TicketCategory category,
+            Pageable pageable);
+}

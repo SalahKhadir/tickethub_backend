@@ -35,7 +35,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Autorise l'accès aux tickets pour tous les rôles authentifiés
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tickets").hasAnyRole("CLIENT", "TECH", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tickets").hasAnyRole("CLIENT", "TECH", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/tickets/*/status").hasAnyRole("TECH", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/tickets/*/assign").hasAnyRole("TECH", "ADMIN")
                         .requestMatchers("/api/tickets/**").hasAnyRole("CLIENT", "TECH", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
@@ -68,4 +71,3 @@ public class SecurityConfig {
         return source;
     }
 }
-

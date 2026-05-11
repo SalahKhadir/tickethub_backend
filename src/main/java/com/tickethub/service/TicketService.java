@@ -1,6 +1,7 @@
 package com.tickethub.service;
 
 import com.tickethub.dto.request.TicketRequest;
+import com.tickethub.dto.request.TicketUpdateRequest;
 import com.tickethub.dto.response.TicketResponse;
 import com.tickethub.model.Priority;
 import com.tickethub.model.TicketCategory;
@@ -15,7 +16,11 @@ public interface TicketService {
 
     TicketResponse getTicketById(Long id);
 
-    TicketResponse updateTicketStatus(Long id, TicketStatus newStatus);
+    TicketResponse assignTechnician(Long ticketId, Long techId);
+
+    TicketResponse updateTicketStatus(Long id, TicketStatus newStatus, String solution);
+
+    TicketResponse updateTicket(Long id, TicketUpdateRequest request);
 
     void deleteTicket(Long id);
 }
