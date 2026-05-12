@@ -81,4 +81,14 @@ public class TicketController {
             @RequestBody TicketUpdateRequest request) {
         return ResponseEntity.ok(ticketService.updateTicket(id, request));
     }
+
+    @GetMapping("/tickets")
+    public ResponseEntity<Page<TicketResponse>> getTickets(
+            Pageable pageable,
+            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) TicketCategory category) {
+        Page<TicketResponse> tickets = ticketService.getAllTickets(pageable, status, priority, category);
+        return ResponseEntity.ok(tickets);
+    }
 }

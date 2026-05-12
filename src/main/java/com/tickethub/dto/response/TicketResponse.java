@@ -1,5 +1,6 @@
 package com.tickethub.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tickethub.model.Priority;
 import com.tickethub.model.TicketCategory;
 import com.tickethub.model.TicketStatus;
@@ -16,6 +17,6 @@ public record TicketResponse(
         LocalDateTime updatedAt,
         LocalDateTime slaDeadline,
         String solution,
-        String authorName,
+        @JsonProperty("author_name") String authorName,
         String assigneeName) {
 }
