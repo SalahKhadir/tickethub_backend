@@ -53,4 +53,17 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             @Param("priority") Priority priority,
             @Param("category") TicketCategory category,
             Pageable pageable);
+
+    long countByAssignedTechnicianIdAndStatusIn(Long techId, java.util.List<TicketStatus> statuses);
+
+    @Query("""
+            SELECT t
+            FROM Ticket t
+            WHERE t.slaDeadline BETWEEN :now AND :threshold
+              AND t.status NOT IN :excludedStatuses
+            """)
+    java.util.List<Ticket> findTicketsNearingSla(
+            @Param("now") java.time.LocalDateTime now,
+            @Param("threshold") java.time.LocalDateTime threshold,
+            @Param("excludedStatuses") java.util.List<TicketStatus> excludedStatuses);
 }
