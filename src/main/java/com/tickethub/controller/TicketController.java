@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -42,10 +43,11 @@ public class TicketController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('CLIENT','TECH','ADMIN')")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Page<TicketResponse>> getAllTickets(
-            @RequestParam(required = false) TicketStatus status,
-            @RequestParam(required = false) Priority priority,
-            @RequestParam(required = false) TicketCategory category,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String category,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         return ResponseEntity.ok(ticketService.getAllTickets(pageable, status, priority, category));

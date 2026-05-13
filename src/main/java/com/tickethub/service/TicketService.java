@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 public interface TicketService {
     TicketResponse createTicket(TicketRequest request);
 
-    Page<TicketResponse> getAllTickets(Pageable pageable, TicketStatus status, Priority priority, TicketCategory category);
+    Page<TicketResponse> getAllTickets(Pageable pageable, String statusString, String priorityString, String categoryString);
 
     TicketResponse getTicketById(Long id);
 

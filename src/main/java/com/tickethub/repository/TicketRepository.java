@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 /*
  * COMPARAISON: J2EE CLASSIQUE vs SPRING DATA JPA
  * 
@@ -30,12 +32,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
   @Query("""
       SELECT t
       FROM Ticket t
-      WHERE (:status IS NULL OR t.status = :status)
+      WHERE (:statuses IS NULL OR t.status IN :statuses)
         AND (:priority IS NULL OR t.priority = :priority)
         AND (:category IS NULL OR t.category = :category)
       """)
   Page<Ticket> findAllWithFilters(
-      @Param("status") TicketStatus status,
+      @Param("statuses") List<TicketStatus> statuses,
       @Param("priority") Priority priority,
       @Param("category") TicketCategory category,
       Pageable pageable);
@@ -44,13 +46,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       SELECT t
       FROM Ticket t
       WHERE t.author.id = :authorId
-        AND (:status IS NULL OR t.status = :status)
+        AND (:statuses IS NULL OR t.status IN :statuses)
         AND (:priority IS NULL OR t.priority = :priority)
         AND (:category IS NULL OR t.category = :category)
       """)
   Page<Ticket> findByAuthorIdWithFilters(
       @Param("authorId") Long authorId,
-      @Param("status") TicketStatus status,
+      @Param("statuses") List<TicketStatus> statuses,
       @Param("priority") Priority priority,
       @Param("category") TicketCategory category,
       Pageable pageable);
@@ -59,13 +61,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       SELECT t
       FROM Ticket t
       WHERE t.assignedTechnician.id = :techId
-        AND (:status IS NULL OR t.status = :status)
+        AND (:statuses IS NULL OR t.status IN :statuses)
         AND (:priority IS NULL OR t.priority = :priority)
         AND (:category IS NULL OR t.category = :category)
       """)
   Page<Ticket> findByAssignedTechnicianIdWithFilters(
       @Param("techId") Long techId,
-      @Param("status") TicketStatus status,
+      @Param("statuses") List<TicketStatus> statuses,
       @Param("priority") Priority priority,
       @Param("category") TicketCategory category,
       Pageable pageable);

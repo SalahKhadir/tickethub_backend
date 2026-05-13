@@ -16,6 +16,9 @@ import com.tickethub.repository.UserRepository;
 import com.tickethub.service.TicketService;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,30 +81,66 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public Page<TicketResponse> getAllTickets(
             Pageable pageable,
-            TicketStatus status,
-            Priority priority,
-            TicketCategory category) {
-        Authentication authentication = getCurrentAuthentication();
+            String statusString,
+            String priorityString,
+            String categoryString) {
 
+        List<TicketStatus> statusList = null;
+        if (statusString != null && !statusString.isBlank()) {
+            statusList = Arrays.stream(statusString.split(","))
+                    .map(String::trim)
+                    .map(s -> {
+                        try {
+                            return TicketStatus.valueOf(s.toUpperCase());
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
+                    })
+                    .filter(java.util.Objects::nonNull)
+                    .collect(Collectors.toList());
+            if (statusList.isEmpty()) {
+                statusList = null;
+            }
+        }
+
+        Priority priority = null;
+        if (priorityString != null && !priorityString.isBlank()) {
+            try {
+                priority = Priority.valueOf(priorityString.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // ignore invalid
+            }
+        }
+
+        TicketCategory category = null;
+        if (categoryString != null && !categoryString.isBlank()) {
+            try {
+                category = TicketCategory.valueOf(categoryString.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // ignore invalid
+            }
+        }
+
+        Authentication authentication = getCurrentAuthentication();
         boolean isAdmin = hasAnyAuthority(authentication, ADMIN_AUTHORITIES);
         boolean isTech = hasAnyAuthority(authentication, TECH_AUTHORITIES);
 
         Page<Ticket> tickets;
-        if (isTech && !isAdmin) {
+        if (isAdmin) {
+            tickets = ticketRepository.findAllWithFilters(statusList, priority, category, pageable);
+        } else if (isTech) {
             User currentUser = getCurrentUser();
             tickets = ticketRepository.findByAssignedTechnicianIdWithFilters(
                     currentUser.getId(),
-                    status,
+                    statusList,
                     priority,
                     category,
                     pageable);
-        } else if (isAdmin) {
-            tickets = ticketRepository.findAllWithFilters(status, priority, category, pageable);
         } else if (hasAnyAuthority(authentication, CLIENT_AUTHORITIES)) {
             User currentUser = getCurrentUser();
             tickets = ticketRepository.findByAuthorIdWithFilters(
                     currentUser.getId(),
-                    status,
+                    statusList,
                     priority,
                     category,
                     pageable);
@@ -209,6 +248,10 @@ public class TicketServiceImpl implements TicketService {
 
         if (newStatus == TicketStatus.RESOLVED) {
             notificationPushService.push(ticket.getAuthor().getEmail(), response);
+            notificationPushService.broadcastToAdmins(response);
+        } else if (newStatus == TicketStatus.IN_PROGRESS) {
+            notificationPushService.push(ticket.getAuthor().getEmail(), response);
+            notificationPushService.broadcastToAdmins(response);
         }
 
         return response;

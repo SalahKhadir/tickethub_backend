@@ -30,6 +30,11 @@ public class JwtTokenProvider {
         String username = authentication.getName();
         String role = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .sorted((r1, r2) -> {
+                    int w1 = r1.equals("ROLE_ADMIN") ? 3 : r1.equals("ROLE_TECH") ? 2 : 1;
+                    int w2 = r2.equals("ROLE_ADMIN") ? 3 : r2.equals("ROLE_TECH") ? 2 : 1;
+                    return Integer.compare(w2, w1);
+                })
                 .findFirst()
                 .orElse("ROLE_CLIENT");
         Date now = new Date();
