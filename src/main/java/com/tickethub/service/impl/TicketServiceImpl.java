@@ -59,10 +59,7 @@ public class TicketServiceImpl implements TicketService {
         Ticket savedTicket = ticketRepository.save(ticket);
         TicketResponse response = toResponse(savedTicket);
 
-        java.util.List<User> admins = userRepository.findByRole(Role.ROLE_ADMIN);
-        for (User admin : admins) {
-            notificationPushService.push(admin.getEmail(), response);
-        }
+        notificationPushService.broadcastToAdmins(response);
 
         return response;
     }
