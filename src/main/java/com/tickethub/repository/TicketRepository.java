@@ -85,4 +85,16 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       @Param("threshold") java.time.LocalDateTime threshold,
       @Param("excludedStatuses") java.util.List<TicketStatus> excludedStatuses);
 
+  @Query("SELECT COUNT(t) FROM Ticket t WHERE t.assignedTechnician.email = :email " +
+         "AND t.status = :status AND t.updatedAt >= :startOfDay")
+  long countByTechnicianAndStatusAndDate(@Param("email") String email, 
+                                         @Param("status") TicketStatus status, 
+                                         @Param("startOfDay") java.time.LocalDateTime startOfDay);
+
+  long countByAssignedTechnicianEmailAndStatusIn(String email, List<TicketStatus> statuses);
+
+  long countByAssignedTechnicianEmailAndStatus(String email, TicketStatus status);
+
+  long countByAssignedTechnicianEmailAndPriorityAndStatusIn(String email, Priority priority, List<TicketStatus> statuses);
+
 }

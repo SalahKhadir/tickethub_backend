@@ -5,6 +5,7 @@ import com.tickethub.dto.request.AssignRequest;
 import com.tickethub.dto.request.TicketStatusUpdateRequest;
 import com.tickethub.dto.request.TicketUpdateRequest;
 import com.tickethub.dto.response.TicketResponse;
+import com.tickethub.dto.response.TechnicianStatsResponse;
 import com.tickethub.model.Priority;
 import com.tickethub.model.TicketCategory;
 import com.tickethub.model.TicketStatus;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -51,6 +53,12 @@ public class TicketController {
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         return ResponseEntity.ok(ticketService.getAllTickets(pageable, status, priority, category));
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('TECH','ADMIN')")
+    public ResponseEntity<com.tickethub.dto.response.TechnicianStatsResponse> getTechnicianStats(Principal principal) {
+        return ResponseEntity.ok(ticketService.getTechnicianStats(principal.getName()));
     }
 
     @PatchMapping("/{id}/status")

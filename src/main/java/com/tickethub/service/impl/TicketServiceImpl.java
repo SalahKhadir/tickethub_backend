@@ -3,6 +3,7 @@ package com.tickethub.service.impl;
 import com.tickethub.dto.request.TicketRequest;
 import com.tickethub.dto.request.TicketUpdateRequest;
 import com.tickethub.dto.response.TicketResponse;
+import com.tickethub.dto.response.TechnicianStatsResponse;
 import com.tickethub.exception.ForbiddenOperationException;
 import com.tickethub.model.Priority;
 import com.tickethub.exception.ResourceNotFoundException;
@@ -315,6 +316,33 @@ public class TicketServiceImpl implements TicketService {
         return toResponse(ticketRepository.save(ticket));
     }
 
+    @Override
+    public com.tickethub.dto.response.TechnicianStatsResponse getTechnicianStats(String email) {
+        /*
+         * COMPARAISON: J2EE CLASSIQUE vs SPRING DATA JPA (Statistiques)
+         * 
+         * En JDBC classique, il aurait fallu écrire 4 requêtes SELECT COUNT(*) distinctes 
+         * avec des jointures explicites pour vérifier l'email de l'utilisateur. 
+         * Avec Spring Data JPA, de simples requêtes basées sur le nom (Query Methods) 
+         * ou une courte @Query suffisent pour abstraire cette complexité d'un coup.
+         */
+        java.time.LocalDateTime startOfDay = java.time.LocalDateTime.now().with(java.time.LocalTime.MIN);
+
+        long assignedTickets = ticketRepository.countByAssignedTechnicianEmailAndStatusIn(
+                email, List.of(TicketStatus.ACCEPTED, TicketStatus.IN_PROGRESS));
+
+        long inProgress = ticketRepository.countByAssignedTechnicianEmailAndStatus(
+                email, TicketStatus.IN_PROGRESS);
+
+        long criticalPriority = ticketRepository.countByAssignedTechnicianEmailAndPriorityAndStatusIn(
+                email, Priority.CRITICAL, List.of(TicketStatus.ACCEPTED, TicketStatus.IN_PROGRESS));
+
+        long resolvedToday = ticketRepository.countByTechnicianAndStatusAndDate(
+                email, TicketStatus.RESOLVED, startOfDay);
+
+        return new com.tickethub.dto.response.TechnicianStatsResponse(
+                assignedTickets, inProgress, criticalPriority, resolvedToday);
+    }
 
     private User getCurrentUser() {
         Authentication authentication = getCurrentAuthentication();
