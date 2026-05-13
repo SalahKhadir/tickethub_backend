@@ -23,6 +23,4 @@ public interface TicketService {
     TicketResponse updateTicket(Long id, TicketUpdateRequest request);
 
     void deleteTicket(Long id);
-
-    Page<TicketResponse> getNotificationTickets(Pageable pageable);
 }

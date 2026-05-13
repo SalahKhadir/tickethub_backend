@@ -67,15 +67,4 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
                         @Param("threshold") java.time.LocalDateTime threshold,
                         @Param("excludedStatuses") java.util.List<TicketStatus> excludedStatuses);
 
-        @Query("SELECT t FROM Ticket t WHERE t.status IN ('OPEN', 'ACCEPTED', 'IN_PROGRESS')")
-        Page<Ticket> findNotificationTicketsForAdmin(Pageable pageable);
-
-        @Query("SELECT t FROM Ticket t WHERE t.assignedTechnician.email = :email " +
-                        "AND t.status IN :statuses")
-        Page<Ticket> findNotificationsByTechEmail(@Param("email") String email,
-                        @Param("statuses") java.util.List<TicketStatus> statuses,
-                        Pageable pageable);
-
-        @Query("SELECT t FROM Ticket t WHERE t.author.email = :email AND t.status = 'RESOLVED'")
-        Page<Ticket> findNotificationTicketsForClient(@Param("email") String email, Pageable pageable);
 }

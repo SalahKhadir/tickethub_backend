@@ -37,6 +37,7 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final com.tickethub.service.NotificationPushService notificationPushService;
 
     @Override
     public TicketResponse createTicket(TicketRequest request) {
@@ -56,7 +57,14 @@ public class TicketServiceImpl implements TicketService {
                 .build();
 
         Ticket savedTicket = ticketRepository.save(ticket);
-        return toResponse(savedTicket);
+        TicketResponse response = toResponse(savedTicket);
+
+        java.util.List<User> admins = userRepository.findByRole(Role.ROLE_ADMIN);
+        for (User admin : admins) {
+            notificationPushService.push(admin.getEmail(), response);
+        }
+
+        return response;
     }
 
     @Override
@@ -135,7 +143,11 @@ public class TicketServiceImpl implements TicketService {
         ticket.setAssignedTechnician(technician);
         // Status stays ACCEPTED — technician must click "Start Work" to move to IN_PROGRESS
         Ticket updatedTicket = ticketRepository.save(ticket);
-        return toResponse(updatedTicket);
+        TicketResponse response = toResponse(updatedTicket);
+
+        notificationPushService.push(technician.getEmail(), response);
+
+        return response;
     }
 
     @Override
@@ -185,7 +197,13 @@ public class TicketServiceImpl implements TicketService {
 
         ticket.setStatus(newStatus);
         Ticket updatedTicket = ticketRepository.save(ticket);
-        return toResponse(updatedTicket);
+        TicketResponse response = toResponse(updatedTicket);
+
+        if (newStatus == TicketStatus.RESOLVED) {
+            notificationPushService.push(ticket.getAuthor().getEmail(), response);
+        }
+
+        return response;
     }
 
     @Override
@@ -246,34 +264,6 @@ public class TicketServiceImpl implements TicketService {
         return toResponse(ticketRepository.save(ticket));
     }
 
-    @Override
-    public Page<TicketResponse> getNotificationTickets(Pageable pageable) {
-        Authentication authentication = getCurrentAuthentication();
-        User currentUser = getCurrentUser();
-
-        boolean isAdmin = hasAnyAuthority(authentication, ADMIN_AUTHORITIES);
-        boolean isTech = hasAnyAuthority(authentication, TECH_AUTHORITIES);
-        boolean isClient = hasAnyAuthority(authentication, CLIENT_AUTHORITIES);
-
-        Page<Ticket> tickets;
-        if (isAdmin) {
-            tickets = ticketRepository.findNotificationTicketsForAdmin(pageable);
-        } else if (isTech) {
-            String email = authentication.getName();
-            tickets = ticketRepository.findNotificationsByTechEmail(
-                email, 
-                java.util.List.of(TicketStatus.ACCEPTED, TicketStatus.IN_PROGRESS), 
-                pageable
-            );
-        } else if (isClient) {
-            String email = authentication.getName();
-            tickets = ticketRepository.findNotificationTicketsForClient(email, pageable);
-        } else {
-            throw new ForbiddenOperationException("You are not allowed to access notifications.");
-        }
-
-        return tickets.map(this::toResponse);
-    }
 
     private User getCurrentUser() {
         Authentication authentication = getCurrentAuthentication();
