@@ -90,7 +90,7 @@ public class NotificationPushService {
     public void broadcastToAdmins(TicketResponse ticket) {
         List<User> admins = userRepository.findByRole(Role.ROLE_ADMIN);
         Set<String> adminEmails = admins.stream().map(User::getEmail).collect(Collectors.toSet());
-        
+
         emitters.forEach((email, emitter) -> {
             if (adminEmails.contains(email)) {
                 System.out.println("DEBUG: Pushing to " + email);
