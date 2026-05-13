@@ -37,8 +37,8 @@ public class NotificationPushService {
             emitters.remove(email);
         }
 
-        // 0 for no timeout (keep-alive)
-        SseEmitter emitter = new SseEmitter(0L);
+        // -1L or Long.MAX_VALUE for infinite timeout instead of 0L which might immediately close in some Tomcat versions
+        SseEmitter emitter = new SseEmitter(-1L);
 
         emitters.put(email, emitter);
         log.info("SSE Connection established for user: {}", email);

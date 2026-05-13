@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "tickets")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -66,6 +66,21 @@ public class Ticket {
     @Column(name = "solution", columnDefinition = "TEXT")
     private String solution;
 
+    /*
+     * COMPARAISON: J2EE CLASSIQUE vs SPRING DATA JPA (Relations)
+     * 
+     * Approche sans Spring :
+     * Gestion manuelle des clés étrangères en SQL. Pour récupérer un ticket avec
+     * son
+     * auteur, il faudrait faire une jointure manuelle (JOIN) et reconstruire
+     * l'arborescence
+     * des objets en Java.
+     * 
+     * Différence :
+     * JPA gère les relations via des annotations et automatise le chargement des
+     * objets
+     * liés (Lazy/Eager loading).
+     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
@@ -87,4 +102,3 @@ public class Ticket {
         }
     }
 }
-

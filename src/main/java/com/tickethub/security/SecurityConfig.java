@@ -20,6 +20,32 @@ import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
+/*
+ * COMPARAISON : J2EE CLASSIQUE (SERVLET) vs SPRING SECURITY
+ *
+ * 1. Gestion des sessions en Servlet (sans Spring) :
+ * L'état d'authentification est généralement maintenu au travers de sessions côté serveur (HttpSession).
+ * Après vérification des identifiants (BBD), on stocke l'utilisateur en session : request.getSession().setAttribute("user", user).
+ * Un cookie JSESSIONID est alors géré manuellement pour suivre l'utilisateur.
+ * Dans notre code Spring, on configure expressément une politique STATELESS (sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+ * en faveur du JWT, éliminant ce besoin de session en mémoire.
+ *
+ * 2. Gestion des filtres de sécurité manuels (sans Spring) :
+ * Il faudrait créer des classes implémentant 'javax.servlet.Filter' et redéfinir 'doFilter(request, response, chain)'.
+ * La logique impliquerait de vérifier :
+ * - Si le chemin requiert une authentification.
+ * - Si "user" existe en session ou si les headers sont présents.
+ * - Les branchements de code "if/else" sans fin pour interdire ou rediriger selon les rôles.
+ *
+ * 3. Comparaison avec Spring Security (Configuration automatique, filtres internes, encodage) :
+ * - Configuration automatique : L'annotation @Configuration combinée au bean SecurityFilterChain permet
+ *   de définir la politique de sécurité de manière centralisée, lisible et déclarative (ex: requestMatchers.hasRole).
+ * - Filtres internes : Sous le capot, Spring Security orchestre une chaîne de filtres prédéfinis
+ *   (comme le UsernamePasswordAuthenticationFilter). Nous n'avons plus qu'à insérer notre propre
+ *   logique 'jwtAuthenticationFilter' au bon endroit via '.addFilterBefore(...)'.
+ * - Encodage Password : On n'a plus à hacher manuellement ni concevoir un validateur cryptographique. La déclaration
+ *   du bean 'PasswordEncoder' avec 'BCryptPasswordEncoder' indique à Spring comment valider les hashs (salt gérés nativement).
+ */
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 

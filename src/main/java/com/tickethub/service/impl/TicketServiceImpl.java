@@ -26,6 +26,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/*
+ * COMPARAISON: J2EE CLASSIQUE vs SPRING BOOT (Services)
+ * 
+ * Approche sans Spring : 
+ * Gestion manuelle des transactions via connection.setAutoCommit(false) et 
+ * connection.commit(). Instanciation manuelle des classes (pas d'Injection de Dépendances).
+ * 
+ * Avantage Spring : 
+ * L'Inversion de Contrôle (IoC) et l'Injection de Dépendances (DI) rendent le code 
+ * modulaire, testable et découplé. L'annotation @Transactional gère les commits et rollbacks.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional

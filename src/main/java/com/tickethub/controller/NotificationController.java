@@ -31,9 +31,10 @@ public class NotificationController {
     public SseEmitter subscribe(@RequestParam("token") String token, HttpServletResponse response) {
         System.out.println("SSE Subscription Attempted");
         
-        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Cache-Control", "no-store");
         response.setHeader("Connection", "keep-alive");
-        
+        response.setHeader("X-Accel-Buffering", "no");
+
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }

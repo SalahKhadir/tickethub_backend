@@ -15,15 +15,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tickethub.service.UserService;
+
 @RestController
 @RequestMapping("/api")
 public class UserController {
     private final UserRepository userRepository;
     private final com.tickethub.repository.TicketRepository ticketRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository, com.tickethub.repository.TicketRepository ticketRepository) {
+    public UserController(UserRepository userRepository, com.tickethub.repository.TicketRepository ticketRepository, UserService userService) {
         this.userRepository = userRepository;
         this.ticketRepository = ticketRepository;
+        this.userService = userService;
     }
 
     @GetMapping("/technicians")
@@ -38,24 +42,10 @@ public class UserController {
         return getTechnicians();
     }
 
-    @GetMapping("/users/technicians/availability")
-    @PreAuthorize("hasAnyRole('TECH','ADMIN')")
+    @GetMapping("/technicians/availability")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<com.tickethub.dto.response.TechnicianAvailabilityResponse>> getTechniciansAvailability() {
-        List<User> technicians = userRepository.findByRole(Role.ROLE_TECH);
-        List<com.tickethub.dto.response.TechnicianAvailabilityResponse> response = technicians.stream().map(tech -> {
-            long count = ticketRepository.countByAssignedTechnicianIdAndStatusIn(tech.getId(),
-                    java.util.List.of(com.tickethub.model.TicketStatus.ACCEPTED,
-                            com.tickethub.model.TicketStatus.IN_PROGRESS));
-            String fullName = java.util.stream.Stream.of(tech.getPrenom(), tech.getNom())
-                    .filter(value -> value != null && !value.isBlank())
-                    .collect(Collectors.joining(" "));
-            if (fullName.isBlank()) {
-                fullName = tech.getEmail();
-            }
-            return new com.tickethub.dto.response.TechnicianAvailabilityResponse(tech.getId(), tech.getEmail(),
-                    fullName, count);
-        }).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.getTechniciansAvailability());
     }
 
     @GetMapping("/admin/technicians")
