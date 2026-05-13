@@ -43,15 +43,17 @@ public class UserController {
     public ResponseEntity<List<com.tickethub.dto.response.TechnicianAvailabilityResponse>> getTechniciansAvailability() {
         List<User> technicians = userRepository.findByRole(Role.ROLE_TECH);
         List<com.tickethub.dto.response.TechnicianAvailabilityResponse> response = technicians.stream().map(tech -> {
-            long count = ticketRepository.countByAssignedTechnicianIdAndStatusIn(tech.getId(), 
-                    java.util.List.of(com.tickethub.model.TicketStatus.ACCEPTED, com.tickethub.model.TicketStatus.IN_PROGRESS));
+            long count = ticketRepository.countByAssignedTechnicianIdAndStatusIn(tech.getId(),
+                    java.util.List.of(com.tickethub.model.TicketStatus.ACCEPTED,
+                            com.tickethub.model.TicketStatus.IN_PROGRESS));
             String fullName = java.util.stream.Stream.of(tech.getPrenom(), tech.getNom())
                     .filter(value -> value != null && !value.isBlank())
                     .collect(Collectors.joining(" "));
             if (fullName.isBlank()) {
                 fullName = tech.getEmail();
             }
-            return new com.tickethub.dto.response.TechnicianAvailabilityResponse(tech.getId(), tech.getEmail(), fullName, count);
+            return new com.tickethub.dto.response.TechnicianAvailabilityResponse(tech.getId(), tech.getEmail(),
+                    fullName, count);
         }).collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
@@ -109,4 +111,3 @@ public class UserController {
         }
     }
 }
-

@@ -81,4 +81,17 @@ public class TicketController {
             @RequestBody TicketUpdateRequest request) {
         return ResponseEntity.ok(ticketService.updateTicket(id, request));
     }
+
+    @GetMapping("/notifications")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<TicketResponse>> getNotificationTickets(
+            @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        System.out.println("Endpoint hit!");
+        try {
+            return ResponseEntity.ok(ticketService.getNotificationTickets(pageable));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

@@ -246,6 +246,35 @@ public class TicketServiceImpl implements TicketService {
         return toResponse(ticketRepository.save(ticket));
     }
 
+    @Override
+    public Page<TicketResponse> getNotificationTickets(Pageable pageable) {
+        Authentication authentication = getCurrentAuthentication();
+        User currentUser = getCurrentUser();
+
+        boolean isAdmin = hasAnyAuthority(authentication, ADMIN_AUTHORITIES);
+        boolean isTech = hasAnyAuthority(authentication, TECH_AUTHORITIES);
+        boolean isClient = hasAnyAuthority(authentication, CLIENT_AUTHORITIES);
+
+        Page<Ticket> tickets;
+        if (isAdmin) {
+            tickets = ticketRepository.findNotificationTicketsForAdmin(pageable);
+        } else if (isTech) {
+            String email = authentication.getName();
+            tickets = ticketRepository.findNotificationsByTechEmail(
+                email, 
+                java.util.List.of(TicketStatus.ACCEPTED, TicketStatus.IN_PROGRESS), 
+                pageable
+            );
+        } else if (isClient) {
+            String email = authentication.getName();
+            tickets = ticketRepository.findNotificationTicketsForClient(email, pageable);
+        } else {
+            throw new ForbiddenOperationException("You are not allowed to access notifications.");
+        }
+
+        return tickets.map(this::toResponse);
+    }
+
     private User getCurrentUser() {
         Authentication authentication = getCurrentAuthentication();
         String email = authentication.getName();
