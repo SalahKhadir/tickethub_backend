@@ -115,4 +115,17 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
   long countByAssignedTechnicianEmailAndPriorityAndStatusIn(String email, Priority priority, List<TicketStatus> statuses);
 
+  long countByStatus(TicketStatus status);
+
+  long countByStatusIn(List<TicketStatus> statuses);
+
+  long countByPriority(Priority priority);
+
+  @Query("SELECT COUNT(t) FROM Ticket t WHERE t.status = :status AND t.updatedAt >= :startOfDay")
+  long countByStatusAndDate(@Param("status") TicketStatus status, @Param("startOfDay") java.time.LocalDateTime startOfDay);
+
+  @Query("SELECT t.category, COUNT(t) FROM Ticket t GROUP BY t.category")
+  List<Object[]> countTicketsByCategoryGroup();
+
+  List<Ticket> findAllByStatus(TicketStatus status);
 }

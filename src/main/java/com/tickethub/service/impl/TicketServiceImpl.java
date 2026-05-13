@@ -16,6 +16,7 @@ import com.tickethub.repository.TicketRepository;
 import com.tickethub.repository.UserRepository;
 import com.tickethub.service.TicketService;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.List;
@@ -342,6 +343,63 @@ public class TicketServiceImpl implements TicketService {
 
         return new com.tickethub.dto.response.TechnicianStatsResponse(
                 assignedTickets, inProgress, criticalPriority, resolvedToday);
+    }
+
+    @Override
+    public com.tickethub.dto.response.AdminStatsResponse getAdminGlobalStats() {
+        Authentication authentication = getCurrentAuthentication();
+        if (!hasAnyAuthority(authentication, ADMIN_AUTHORITIES)) {
+            throw new AccessDeniedException("Only ADMIN can view global stats.");
+        }
+
+        /*
+         * COMPARAISON PÉDAGOGIQUE: RAPPORTS JDBC vs SPRING DATA JPA
+         *
+         * En JDBC classique, générer ces rapports aurait nécessité des clauses GROUP BY
+         * complexes et de nombreux JOIN sur plusieurs tables (users, tickets, roles),
+         * avec une itération manuelle sur un ResultSet pour construire la Map de retour.
+         *
+         * Avec Spring Data JPA, le framework permet de mapper ces résultats de groupe
+         * directement en Map ou structures DTO grâce à HQL/JPQL ou aux méthodes
+         * dérivées (Query Methods) très intuitives et puissantes.
+         */
+
+        long totalTickets = ticketRepository.count();
+
+        long openTickets = ticketRepository.countByStatusIn(
+                List.of(TicketStatus.NEW, TicketStatus.ACCEPTED, TicketStatus.IN_PROGRESS)
+        );
+
+        LocalDateTime startOfDay = LocalDateTime.now().with(java.time.LocalTime.MIN);
+        long resolvedToday = ticketRepository.countByStatusAndDate(
+                TicketStatus.RESOLVED, startOfDay);
+
+        long criticalSLA = ticketRepository.countByPriority(Priority.CRITICAL);
+
+        List<Object[]> categoryCounts = ticketRepository.countTicketsByCategoryGroup();
+        java.util.Map<String, Long> ticketsByCategory = categoryCounts.stream()
+                .collect(Collectors.toMap(
+                        row -> row[0] != null ? row[0].toString() : "UNKNOWN",
+                        row -> ((Number) row[1]).longValue()
+                ));
+
+        long totalUsers = userRepository.count();
+
+        List<Ticket> resolved = ticketRepository.findAllByStatus(TicketStatus.RESOLVED);
+        String avgResolutionTime = "N/A";
+        if (!resolved.isEmpty()) {
+            long totalMs = resolved.stream()
+                .filter(t -> t.getCreatedAt() != null && t.getUpdatedAt() != null)
+                .mapToLong(t -> Duration.between(t.getCreatedAt(), t.getUpdatedAt()).toMillis())
+                .sum();
+            long avgMs = totalMs / resolved.size();
+            long hours = avgMs / 3_600_000;
+            long mins  = (avgMs % 3_600_000) / 60_000;
+            avgResolutionTime = hours + "h " + mins + "m";
+        }
+
+        return new com.tickethub.dto.response.AdminStatsResponse(
+                totalTickets, openTickets, resolvedToday, criticalSLA, ticketsByCategory, totalUsers, avgResolutionTime);
     }
 
     private User getCurrentUser() {
