@@ -37,6 +37,7 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final com.tickethub.service.NotificationPushService notificationPushService;
 
     @Override
     public TicketResponse createTicket(TicketRequest request) {
@@ -56,7 +57,11 @@ public class TicketServiceImpl implements TicketService {
                 .build();
 
         Ticket savedTicket = ticketRepository.save(ticket);
-        return toResponse(savedTicket);
+        TicketResponse response = toResponse(savedTicket);
+
+        notificationPushService.broadcastToAdmins(response);
+
+        return response;
     }
 
     @Override
@@ -135,7 +140,11 @@ public class TicketServiceImpl implements TicketService {
         ticket.setAssignedTechnician(technician);
         // Status stays ACCEPTED — technician must click "Start Work" to move to IN_PROGRESS
         Ticket updatedTicket = ticketRepository.save(ticket);
-        return toResponse(updatedTicket);
+        TicketResponse response = toResponse(updatedTicket);
+
+        notificationPushService.push(technician.getEmail(), response);
+
+        return response;
     }
 
     @Override
@@ -185,7 +194,13 @@ public class TicketServiceImpl implements TicketService {
 
         ticket.setStatus(newStatus);
         Ticket updatedTicket = ticketRepository.save(ticket);
-        return toResponse(updatedTicket);
+        TicketResponse response = toResponse(updatedTicket);
+
+        if (newStatus == TicketStatus.RESOLVED) {
+            notificationPushService.push(ticket.getAuthor().getEmail(), response);
+        }
+
+        return response;
     }
 
     @Override
@@ -245,6 +260,7 @@ public class TicketServiceImpl implements TicketService {
         }
         return toResponse(ticketRepository.save(ticket));
     }
+
 
     private User getCurrentUser() {
         Authentication authentication = getCurrentAuthentication();
