@@ -14,6 +14,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
+/*
+ * COMPARAISON : J2EE CLASSIQUE vs SPRING SECURITY (Filtres et Sessions)
+ *
+ * 1. Gestion des sessions en Servlet (sans Spring) :
+ * En pur Servlet, la persistance de l'utilisateur nécessitait l'utilisation de `HttpSession`.
+ * Il fallait vérifier manuellement dans chaque requête si la session existait
+ * via `request.getSession(false)` et si l'objet User y était attaché.
+ *
+ * 2. Gestion des filtres de sécurité manuels :
+ * Pour protéger des URL sans Spring, il fallait créer un `javax.servlet.Filter` personnalisé
+ * et configurer son cycle de vie (web.xml ou @WebFilter). Dans la méthode doFilter(),
+ * nous devions extraire les informations (Cookies/Headers), vérifier en BDD manuellement,
+ * gérer les blocages `response.sendError(401)` de façon répétitive pour chaque endpoint.
+ *
+ * 3. Comparaison avec Spring Security :
+ * - Filtres internes : En héritant de `OncePerRequestFilter`, Spring garantit une unique
+ *   exécution du filtre par requête. Ce filtre intercepte le token, valide l'utilisateur et
+ *   l'injecte dans le `SecurityContextHolder`. Ainsi, le reste de l'application a
+ *   immédiatement accès à l'utilisateur `Authentication`.
+ * - Configuration & Password : Le cryptage n'est pas fait ici à la main. La comparaison
+ *   intervient via `AuthenticationManager` et `BCryptPasswordEncoder` (déclarés dans SecurityConfig),
+ *   automatisant la vérification salt + hash sécurisée, sans exposer les mots de passe.
+ */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
