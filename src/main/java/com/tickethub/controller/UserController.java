@@ -64,11 +64,12 @@ public class UserController {
         return ResponseEntity.ok(toTechnicianResponses(userRepository.findByRole(parsedRole)));
     }
 
-    @GetMapping("/admin/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TechnicianResponse>> getUsersAdmin(@RequestParam(required = false) String role) {
-        return getUsers(role);
-    }
+    // This method is commented out because it conflicts with AdminUserController's @GetMapping
+    // @GetMapping("/admin/users")
+    // @PreAuthorize("hasRole('ADMIN')")
+    // public ResponseEntity<List<TechnicianResponse>> getUsersAdmin(@RequestParam(required = false) String role) {
+    //     return getUsers(role);
+    // }
 
     private List<TechnicianResponse> toTechnicianResponses(List<User> users) {
         return users.stream()

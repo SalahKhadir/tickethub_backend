@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
+    List<User> findAllByEnabledFalse();
+
     @Query("select distinct u from User u join u.roles r where r = :role and u.enabled = true")
     List<User> findByRole(@Param("role") Role role);
 }
